@@ -233,26 +233,26 @@
             padding: 10px;
         }
 
-        .trace-toggle {
+        .show-hint-toggle {
             background: #ff9800;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 20px;
             cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
             transition: all 0.3s ease;
         }
 
-        .trace-toggle:hover {
+        .show-hint-toggle:hover {
             background: #f57c00;
+            transform: translateY(-2px);
         }
 
-        .trace-toggle.active {
+        .show-hint-toggle.active {
             background: #4caf50;
-        }
-
-        .canvas-container {
+        }        .canvas-container {
             border: 3px solid #ddd;
             border-radius: 12px;
             overflow: hidden;
@@ -367,7 +367,24 @@
             transform: translateY(-2px);
         }
 
-        .success-modal {
+        .feedback-icon {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            z-index: 2000;
+            display: none;
+            opacity: 0;
+        }
+
+        .feedback-icon.show {
+            display: block;
+            animation: feedbackPop 1.5s ease-out;
+        }
+
+        .game-complete-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -380,7 +397,7 @@
             z-index: 1000;
         }
 
-        .success-content {
+        .game-complete-content {
             background: white;
             padding: 40px;
             border-radius: 20px;
@@ -402,6 +419,32 @@
         .success-message {
             font-size: 1.3rem;
             color: #666;
+        }
+
+        .game-complete-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        .restart-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .restart-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
         }
 
         .spelling-section {
@@ -452,6 +495,29 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
+        @keyframes feedbackPop {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.3); 
+                opacity: 0; 
+            }
+            20% { 
+                transform: translate(-50%, -50%) scale(1.2); 
+                opacity: 1; 
+            }
+            40% { 
+                transform: translate(-50%, -50%) scale(0.9); 
+                opacity: 1; 
+            }
+            60% { 
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(0.3); 
+                opacity: 0; 
+            }
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -492,14 +558,22 @@
             <div class="score">Score: <span id="scoreValue">0</span></div>
         </div>
 
-        <!-- Success Modal -->
-        <div id="successModal" class="success-modal">
-            <div class="success-content">
-                <div class="success-emoji">🎉</div>
-                <div class="success-title">Great Job!</div>
-                <div class="success-message">You spelled <span id="successWord"></span> correctly!</div>
+        <!-- Game Complete Modal -->
+        <div id="gameCompleteModal" class="game-complete-modal">
+            <div class="game-complete-content">
+                <div class="success-emoji">🏆</div>
+                <div class="success-title">Congratulations!</div>
+                <div class="success-message">You've completed all the words!</div>
+                <div style="margin: 20px 0; font-size: 1.5rem; color: #333;">
+                    Final Score: <span id="finalScore">0</span>
+                </div>
+                <button class="restart-btn" onclick="restartGame()">Play Again</button>
             </div>
         </div>
+
+        <!-- Feedback Icons -->
+        <img id="correctIcon" class="feedback-icon" src="images/tick.png" alt="Correct">
+        <img id="incorrectIcon" class="feedback-icon" src="images/stop.png" alt="Incorrect">
 
         <!-- Word Challenge Section -->
         <div class="word-section">
@@ -541,10 +615,9 @@
             <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
                 <h3>Now draw your picture!</h3>
                 
-                <!-- Reference Image and Trace Toggle -->
+                <!-- Hint Toggle -->
                 <div class="drawing-reference">
-                    <img id="drawingReference" class="reference-image" src="images/cat.png" alt="Reference image">
-                    <button class="trace-toggle" id="traceToggle" onclick="toggleTrace()">Show Reference Image</button>
+                    <button class="show-hint-toggle" id="showHintToggle" onclick="toggleHint()">Show Hint</button>
                 </div>
                 
                 <!-- Drawing Tools -->
@@ -577,8 +650,10 @@
         let currentColor = '#000000';
         let isDrawing = false;
         let hasDrawn = false;
-        let traceVisible = false;
+        let hintVisible = false;
         let referenceImage = null;
+        let traceLines = [];
+        let gameComplete = false;
 
         // Letter colors for variety
         const letterColors = [
@@ -598,6 +673,89 @@
             { word: 'BED', hint: 'Draw something you sleep on!', image: 'images/bed.png' },
             { word: 'BOX', hint: 'Draw something square you put things in!', image: 'images/box.png' }
         ];
+
+        // Simplified tracing paths for each word (relative to canvas center)
+        const tracingPaths = {
+            'CAT': [
+                // Cat head (circle)
+                { type: 'circle', x: 0, y: -50, radius: 80 },
+                // Cat ears (triangles)
+                { type: 'triangle', points: [[-60, -120], [-30, -90], [-90, -90]] },
+                { type: 'triangle', points: [[60, -120], [90, -90], [30, -90]] },
+                // Cat body (oval)
+                { type: 'ellipse', x: 0, y: 50, width: 120, height: 80 },
+                // Cat tail (curve)
+                { type: 'curve', points: [[60, 80], [120, 60], [140, 20], [120, -20]] }
+            ],
+            'DOG': [
+                // Dog head
+                { type: 'ellipse', x: 0, y: -40, width: 100, height: 80 },
+                // Dog ears
+                { type: 'ellipse', x: -50, y: -60, width: 30, height: 50 },
+                { type: 'ellipse', x: 50, y: -60, width: 30, height: 50 },
+                // Dog body
+                { type: 'ellipse', x: 0, y: 40, width: 140, height: 90 },
+                // Dog tail
+                { type: 'curve', points: [[70, 60], [110, 40], [120, 0]] }
+            ],
+            'SUN': [
+                // Sun center
+                { type: 'circle', x: 0, y: 0, radius: 60 },
+                // Sun rays (lines)
+                { type: 'line', points: [[0, -120], [0, -80]] },
+                { type: 'line', points: [[85, -85], [60, -60]] },
+                { type: 'line', points: [[120, 0], [80, 0]] },
+                { type: 'line', points: [[85, 85], [60, 60]] },
+                { type: 'line', points: [[0, 120], [0, 80]] },
+                { type: 'line', points: [[-85, 85], [-60, 60]] },
+                { type: 'line', points: [[-120, 0], [-80, 0]] },
+                { type: 'line', points: [[-85, -85], [-60, -60]] }
+            ],
+            'CAR': [
+                // Car body (rectangle)
+                { type: 'rect', x: -80, y: -20, width: 160, height: 60 },
+                // Car roof
+                { type: 'rect', x: -40, y: -60, width: 80, height: 40 },
+                // Car wheels
+                { type: 'circle', x: -50, y: 50, radius: 25 },
+                { type: 'circle', x: 50, y: 50, radius: 25 }
+            ],
+            'HAT': [
+                // Hat brim
+                { type: 'ellipse', x: 0, y: 40, width: 140, height: 30 },
+                // Hat crown
+                { type: 'rect', x: -50, y: -40, width: 100, height: 80 }
+            ],
+            'BAT': [
+                // Bat body
+                { type: 'ellipse', x: 0, y: 0, width: 40, height: 80 },
+                // Bat wings
+                { type: 'curve', points: [[-20, -20], [-80, -40], [-100, 0], [-80, 40], [-20, 20]] },
+                { type: 'curve', points: [[20, -20], [80, -40], [100, 0], [80, 40], [20, 20]] }
+            ],
+            'CUP': [
+                // Cup body (trapezoid)
+                { type: 'path', points: [[-40, -60], [40, -60], [50, 60], [-50, 60]] },
+                // Cup handle
+                { type: 'curve', points: [[50, -20], [80, -20], [90, 0], [80, 20], [50, 20]] }
+            ],
+            'BED': [
+                // Bed frame
+                { type: 'rect', x: -80, y: -20, width: 160, height: 80 },
+                // Bed headboard
+                { type: 'rect', x: -80, y: -60, width: 20, height: 80 },
+                // Bed footboard
+                { type: 'rect', x: 60, y: -40, width: 20, height: 60 }
+            ],
+            'BOX': [
+                // Box (cube perspective)
+                { type: 'rect', x: -60, y: -40, width: 120, height: 80 },
+                // Box top face
+                { type: 'path', points: [[-60, -40], [-30, -70], [90, -70], [60, -40]] },
+                // Box side face
+                { type: 'path', points: [[60, -40], [90, -70], [90, 10], [60, 40]] }
+            ]
+        };
 
         const colors = ['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500'];
 
@@ -729,9 +887,9 @@
             hasDrawn = false;
             hideNextWordButton();
             
-            // Only redraw reference image if it's supposed to be visible
-            if (traceVisible && referenceImage) {
-                drawReferenceImage();
+            // Redraw hint if visible
+            if (hintVisible) {
+                drawTraceLines();
             }
         }
 
@@ -739,83 +897,101 @@
             traceCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
         }
 
-        function toggleTrace() {
-            const button = document.getElementById('traceToggle');
+        function toggleHint() {
+            const button = document.getElementById('showHintToggle');
             
-            if (traceVisible) {
-                // Hide reference image
-                button.textContent = 'Show Reference Image';
+            if (hintVisible) {
+                // Hide hint
+                button.textContent = 'Show Hint';
                 button.classList.remove('active');
-                traceVisible = false;
-                // Clear the entire canvas and redraw it properly
+                hintVisible = false;
                 clearCanvas();
             } else {
-                // Show reference image
-                button.textContent = 'Hide Reference Image';
+                // Show hint
+                button.textContent = 'Hide Hint';
                 button.classList.add('active');
-                traceVisible = true;
-                // Clear canvas first to remove any old reference images, then draw new one
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                drawReferenceImage();
+                hintVisible = true;
+                clearCanvas();
+                drawTraceLines();
             }
         }
 
-        function drawReferenceImage() {
-            if (!referenceImage) return;
+        function drawTraceLines() {
+            if (!hintVisible || !tracingPaths[currentWord]) return;
             
-            // Calculate centered position and size
-            const canvasAspect = canvas.width / canvas.height;
-            const imageAspect = referenceImage.width / referenceImage.height;
-            
-            let drawWidth, drawHeight, drawX, drawY;
-            
-            // Scale image to fit canvas while maintaining aspect ratio
-            if (imageAspect > canvasAspect) {
-                // Image is wider than canvas aspect ratio
-                drawWidth = canvas.width * 0.8; // Use 80% of canvas width (increased from 60%)
-                drawHeight = drawWidth / imageAspect;
-            } else {
-                // Image is taller than canvas aspect ratio
-                drawHeight = canvas.height * 0.8; // Use 80% of canvas height (increased from 60%)
-                drawWidth = drawHeight * imageAspect;
-            }
-            
-            // Center the image
-            drawX = (canvas.width - drawWidth) / 2;
-            drawY = (canvas.height - drawHeight) / 2;
+            const paths = tracingPaths[currentWord];
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
             
             // Save current context state
             ctx.save();
             
-            // Set low opacity for reference image
-            ctx.globalAlpha = 0.3;
+            // Set trace line style
+            ctx.strokeStyle = '#ff9800';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.setLineDash([10, 5]); // Dashed line for tracing
             
-            // Draw the reference image
-            ctx.drawImage(referenceImage, drawX, drawY, drawWidth, drawHeight);
+            paths.forEach(path => {
+                ctx.beginPath();
+                
+                switch (path.type) {
+                    case 'circle':
+                        ctx.arc(centerX + path.x, centerY + path.y, path.radius, 0, Math.PI * 2);
+                        break;
+                        
+                    case 'ellipse':
+                        ctx.save();
+                        ctx.translate(centerX + path.x, centerY + path.y);
+                        ctx.scale(path.width / 100, path.height / 100);
+                        ctx.arc(0, 0, 50, 0, Math.PI * 2);
+                        ctx.restore();
+                        break;
+                        
+                    case 'rect':
+                        ctx.rect(centerX + path.x, centerY + path.y, path.width, path.height);
+                        break;
+                        
+                    case 'line':
+                        ctx.moveTo(centerX + path.points[0][0], centerY + path.points[0][1]);
+                        ctx.lineTo(centerX + path.points[1][0], centerY + path.points[1][1]);
+                        break;
+                        
+                    case 'triangle':
+                        ctx.moveTo(centerX + path.points[0][0], centerY + path.points[0][1]);
+                        ctx.lineTo(centerX + path.points[1][0], centerY + path.points[1][1]);
+                        ctx.lineTo(centerX + path.points[2][0], centerY + path.points[2][1]);
+                        ctx.closePath();
+                        break;
+                        
+                    case 'curve':
+                        ctx.moveTo(centerX + path.points[0][0], centerY + path.points[0][1]);
+                        for (let i = 1; i < path.points.length - 2; i += 2) {
+                            const cp1x = centerX + path.points[i][0];
+                            const cp1y = centerY + path.points[i][1];
+                            const cp2x = centerX + path.points[i + 1][0];
+                            const cp2y = centerY + path.points[i + 1][1];
+                            const x = centerX + path.points[i + 2][0];
+                            const y = centerY + path.points[i + 2][1];
+                            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+                        }
+                        break;
+                        
+                    case 'path':
+                        ctx.moveTo(centerX + path.points[0][0], centerY + path.points[0][1]);
+                        for (let i = 1; i < path.points.length; i++) {
+                            ctx.lineTo(centerX + path.points[i][0], centerY + path.points[i][1]);
+                        }
+                        ctx.closePath();
+                        break;
+                }
+                
+                ctx.stroke();
+            });
             
             // Restore context state
             ctx.restore();
-        }
-
-        function loadReferenceImage() {
-            const wordObj = words.find(w => w.word === currentWord);
-            referenceImage = new Image();
-            referenceImage.onload = function() {
-                // Image is loaded and ready to use
-                // Only draw if trace is currently visible
-                if (traceVisible) {
-                    // Clear canvas completely first, then draw reference
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    drawReferenceImage();
-                }
-            };
-            referenceImage.src = wordObj.image;
-        }
-
-        function drawTraceOutline() {
-            // This function is no longer needed - we use the actual image now
         }
 
         function generateScatteredLetters() {
@@ -926,26 +1102,28 @@
             const spelled = playerSpelling.join('');
             if (spelled === currentWord) {
                 score += 10;
-                showSuccess();
+                showFeedback(true);
                 setTimeout(() => {
-                    hideSuccess();
                     showDrawingSection();
-                }, 2000);
+                }, 1500);
             } else {
-                // Wrong - reset
-                playerSpelling = [];
-                generateScatteredLetters();
-                updateUI();
+                // Wrong - show incorrect feedback and reset
+                showFeedback(false);
+                setTimeout(() => {
+                    playerSpelling = [];
+                    generateScatteredLetters();
+                    updateUI();
+                }, 1500);
             }
         }
 
-        function showSuccess() {
-            document.getElementById('successWord').textContent = currentWord;
-            document.getElementById('successModal').style.display = 'flex';
-        }
-
-        function hideSuccess() {
-            document.getElementById('successModal').style.display = 'none';
+        function showFeedback(isCorrect) {
+            const icon = isCorrect ? document.getElementById('correctIcon') : document.getElementById('incorrectIcon');
+            icon.classList.add('show');
+            
+            setTimeout(() => {
+                icon.classList.remove('show');
+            }, 1500);
         }
 
         function showDrawingSection() {
@@ -954,19 +1132,10 @@
             hasDrawn = false;
             hideNextWordButton();
             
-            // Update reference image
-            const wordObj = words.find(w => w.word === currentWord);
-            document.getElementById('drawingReference').src = wordObj.image;
-            document.getElementById('drawingReference').alt = `Reference: ${currentWord.toLowerCase()}`;
-            
-            // Load reference image for canvas but don't show it yet
-            loadReferenceImage();
-            
-            // Reset trace state - hide reference by default
-            traceVisible = false;
-            document.getElementById('traceToggle').textContent = 'Show Reference Image';
-            document.getElementById('traceToggle').classList.remove('active');
-            document.getElementById('traceCanvas').style.display = 'none';
+            // Reset hint state - hide by default
+            hintVisible = false;
+            document.getElementById('showHintToggle').textContent = 'Show Hint';
+            document.getElementById('showHintToggle').classList.remove('active');
             
             // Clear canvas to ensure clean start
             ctx.fillStyle = 'white';
@@ -987,17 +1156,44 @@
         }
 
         function nextWord() {
-            // Move to next word in sequence to avoid repeats
-            currentWordIndex = (currentWordIndex + 1) % words.length;
+            // Check if we've reached the last word
+            if (currentWordIndex >= words.length - 1) {
+                // Game complete!
+                showGameComplete();
+                return;
+            }
+            
+            // Move to next word in sequence
+            currentWordIndex = currentWordIndex + 1;
             currentWord = words[currentWordIndex].word;
             playerSpelling = [];
             generateScatteredLetters();
             showSpellingSection(); // Show spelling section for new word
             updateUI();
             clearCanvas();
+        }
+
+        function showGameComplete() {
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameCompleteModal').style.display = 'flex';
+        }
+
+        function restartGame() {
+            // Reset game state
+            currentWordIndex = 0;
+            currentWord = words[0].word;
+            playerSpelling = [];
+            score = 0;
+            gameComplete = false;
             
-            // Reset reference image for new word
-            referenceImage = null;
+            // Hide game complete modal
+            document.getElementById('gameCompleteModal').style.display = 'none';
+            
+            // Reset to spelling section
+            generateScatteredLetters();
+            showSpellingSection();
+            updateUI();
+            clearCanvas();
         }
 
         // Initialize the game when page loads
