@@ -53,9 +53,11 @@
         }
         
         .princess {
-            font-size: 4em;
+            width: 120px;
+            height: 120px;
             display: inline-block;
             animation: float 3s ease-in-out infinite;
+            object-fit: contain;
         }
         
         @keyframes float {
@@ -269,7 +271,7 @@
     <div class="slide active">
         <h1>🏰 Princess Reading Adventure! 👑</h1>
         <div class="princess-scene">
-            <div class="princess">👸</div>
+            <img src="images/princess.png" alt="Princess" class="princess">
             <h2>Welcome to our magical story world!</h2>
             <p style="font-size: 1.3em; color: #666;">Today we're going to build sentences to tell princess stories!</p>
         </div>
@@ -282,7 +284,7 @@
     <div class="slide">
         <h1>The Princess and the Cat 🐱</h1>
         <div class="princess-scene">
-            <div class="princess">👸</div>
+            <img src="images/princess.png" alt="Princess" class="princess">
             <div style="font-size: 3em; margin-left: 20px;">🐱</div>
         </div>
         <div class="instructions">
@@ -311,7 +313,7 @@
     <div class="slide">
         <h1>Where Did the Cat Sit? 🪑</h1>
         <div class="princess-scene">
-            <div class="princess">👸</div>
+            <img src="images/princess.png" alt="Princess" class="princess">
             <div style="font-size: 2em; margin: 10px;">🐱 🪑</div>
         </div>
         <div class="instructions">
@@ -342,7 +344,7 @@
     <div class="slide">
         <h1>The Princess and the Rat 🐭</h1>
         <div class="princess-scene">
-            <div class="princess">👸</div>
+            <img src="images/princess.png" alt="Princess" class="princess">
             <div style="font-size: 2.5em; margin: 10px;">🐭</div>
         </div>
         <div class="instructions">
@@ -372,7 +374,7 @@
     <div class="slide">
         <h1>The Princess Meets Dad 👨</h1>
         <div class="princess-scene">
-            <div class="princess">👸</div>
+            <img src="images/princess.png" alt="Princess" class="princess">
             <div style="font-size: 2.5em; margin: 10px;">👨</div>
         </div>
         <div class="instructions">
@@ -404,7 +406,7 @@
     <div class="slide">
         <h1>Your Own Princess Story! ✨</h1>
         <div class="princess-scene">
-            <div class="princess">👸</div>
+            <img src="images/princess.png" alt="Princess" class="princess">
             <div style="font-size: 2em;">✨🏰✨</div>
         </div>
         <div class="instructions">
@@ -560,19 +562,47 @@
             // Check if speak button exists (some slides might not have one)
             if (!speakBtn) return;
             
+            // Check if speech synthesis is supported
+            if (!('speechSynthesis' in window)) {
+                alert('Speech is not supported on this device. Please read the sentence out loud: "' + sentences[slideIndex] + '"');
+                return;
+            }
+            
             // Disable button during speech
             speakBtn.disabled = true;
             speakBtn.textContent = '🔊 Speaking...';
             
             // Stop any current speech
-            if (speechSynthesis) {
-                speechSynthesis.cancel();
-            }
+            speechSynthesis.cancel();
             
-            let currentWordIndex = 0;
-            
-            function speakNextWord() {
-                if (currentWordIndex >= words.length) {
+            // Wait a moment for cancel to complete, then start new speech
+            setTimeout(() => {
+                // Try simple approach first - speak the whole sentence
+                const utterance = new SpeechSynthesisUtterance(sentences[slideIndex]);
+                utterance.rate = 0.7; // Slower for learning
+                utterance.volume = 1.0;
+                utterance.pitch = 1.0;
+                
+                // Set a voice if available (helps with compatibility)
+                const voices = speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    // Try to find an English voice
+                    const englishVoice = voices.find(voice => voice.lang.startsWith('en'));
+                    if (englishVoice) {
+                        utterance.voice = englishVoice;
+                    } else {
+                        utterance.voice = voices[0]; // Use first available voice
+                    }
+                }
+                
+                utterance.onstart = function() {
+                    console.log('Speech started');
+                    // Highlight all words at once for tablet compatibility
+                    sentenceWords.forEach(wordEl => wordEl.classList.add('word-highlight'));
+                };
+                
+                utterance.onend = function() {
+                    console.log('Speech ended');
                     // Speech finished
                     if (speakBtn) {
                         speakBtn.disabled = false;
@@ -580,37 +610,24 @@
                     }
                     // Remove all highlights
                     sentenceWords.forEach(wordEl => wordEl.classList.remove('word-highlight'));
-                    return;
-                }
-                
-                // Highlight current word
-                sentenceWords.forEach(wordEl => wordEl.classList.remove('word-highlight'));
-                if (sentenceWords[currentWordIndex]) {
-                    sentenceWords[currentWordIndex].classList.add('word-highlight');
-                }
-                
-                // Create speech for current word
-                const utterance = new SpeechSynthesisUtterance(words[currentWordIndex]);
-                utterance.rate = 0.8; // Slightly slower for learning
-                utterance.volume = 0.9;
-                
-                utterance.onend = function() {
-                    currentWordIndex++;
-                    setTimeout(speakNextWord, 200); // Small pause between words
                 };
                 
-                utterance.onerror = function() {
+                utterance.onerror = function(event) {
+                    console.log('Speech error:', event.error);
                     if (speakBtn) {
                         speakBtn.disabled = false;
                         speakBtn.textContent = '🔊 Listen to your sentence';
                     }
                     sentenceWords.forEach(wordEl => wordEl.classList.remove('word-highlight'));
+                    
+                    // Show user-friendly error message
+                    alert('Speech may not work on this device. Please read out loud: "' + sentences[slideIndex] + '"');
                 };
                 
+                // Speak the sentence
                 speechSynthesis.speak(utterance);
-            }
-            
-            speakNextWord();
+                
+            }, 100); // Small delay to ensure previous speech is cancelled
         }
         
         function clearSentence(slideIndex) {
@@ -633,6 +650,19 @@
         
         // Initialize
         updateProgress();
+        
+        // Initialize speech synthesis voices (helps with tablet compatibility)
+        if ('speechSynthesis' in window) {
+            // Load voices
+            function loadVoices() {
+                const voices = speechSynthesis.getVoices();
+                console.log('Available voices:', voices.length);
+            }
+            
+            // Some browsers load voices asynchronously
+            speechSynthesis.onvoiceschanged = loadVoices;
+            loadVoices(); // Try loading immediately too
+        }
         
         // Keyboard navigation
         document.addEventListener('keydown', (e) => {
