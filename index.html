@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Princess Reading Adventure</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .slide {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 3px solid #ff69b4;
+            display: none;
+        }
+        
+        .slide.active {
+            display: block;
+        }
+        
+        .slide h1 {
+            color: #ff1493;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .slide h2 {
+            color: #ff69b4;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        
+        .princess-scene {
+            background: linear-gradient(to bottom, #87ceeb 0%, #98fb98 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            position: relative;
+            min-height: 200px;
+        }
+        
+        .princess {
+            font-size: 4em;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .word-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        
+        .word {
+            background: #ff69b4;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.5em;
+            font-weight: bold;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .word:hover {
+            background: #ff1493;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        .word.used {
+            background: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+        
+        .sentence-builder {
+            background: #f0f8ff;
+            border: 3px dashed #ff69b4;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            color: #333;
+        }
+        
+        .sentence-word {
+            background: #ffb6c1;
+            padding: 8px 12px;
+            margin: 0 5px;
+            border-radius: 10px;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .sentence-word:hover {
+            background: #ff91a4;
+        }
+        
+        .navigation {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .nav-btn {
+            background: #ff69b4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: #ff1493;
+        }
+        
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .progress {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #ff69b4, #ff1493);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        .celebration {
+            text-align: center;
+            font-size: 3em;
+            color: #ff1493;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .celebration.show {
+            display: block;
+            animation: bounce 1s ease-in-out;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-30px); }
+            60% { transform: translateY(-15px); }
+        }
+        
+        .instructions {
+            background: #fffacd;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 1.1em;
+            color: #333;
+        }
+        
+        .read-aloud {
+            background: #e6f3ff;
+            border: 2px solid #4169e1;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 1.2em;
+            color: #1e90ff;
+            text-align: center;
+        }
+        
+        .speak-btn {
+            background: #4169e1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .speak-btn:hover {
+            background: #1e90ff;
+        }
+        
+        .speak-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .word-highlight {
+            background: #ffff00 !important;
+            color: #000 !important;
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .clear-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 10px auto;
+            transition: background 0.3s ease;
+            display: none;
+            text-align: center;
+        }
+        
+        .clear-btn:hover {
+            background: #ff5252;
+        }
+        
+        .clear-btn.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <!-- Slide 1: Introduction -->
+    <div class="slide active">
+        <h1>🏰 Princess Reading Adventure! 👑</h1>
+        <div class="princess-scene">
+            <div class="princess">👸</div>
+            <h2>Welcome to our magical story world!</h2>
+            <p style="font-size: 1.3em; color: #666;">Today we're going to build sentences to tell princess stories!</p>
+        </div>
+        <div class="instructions">
+            <strong>Remember:</strong> Read each word OUT LOUD as you click it! This helps your brain understand the story you're building.
+        </div>
+    </div>
+    
+    <!-- Slide 2: Simple Action -->
+    <div class="slide">
+        <h1>The Princess and the Cat 🐱</h1>
+        <div class="princess-scene">
+            <div class="princess">👸</div>
+            <div style="font-size: 3em; margin-left: 20px;">🐱</div>
+        </div>
+        <div class="instructions">
+            <strong>Your turn:</strong> Click the words to build a sentence! Read each word as you click it.
+        </div>
+        <div class="word-bank">
+            <button class="word" onclick="addWord('The', 0)">The</button>
+            <button class="word" onclick="addWord('cat', 0)">cat</button>
+            <button class="word" onclick="addWord('sat', 0)">sat</button>
+        </div>
+        <div class="sentence-builder" id="sentence0">
+            <span style="color: #999;">Click words to build your sentence...</span>
+        </div>
+        <div style="text-align: center;">
+            <button class="clear-btn" id="clearBtn0" onclick="clearSentence(0)">🗑️ Clear & Start Again</button>
+        </div>
+        <div class="read-aloud" id="readAloud0" style="display: none;">
+            <strong>Now read your sentence out loud! 📖</strong>
+            <br>
+            <button class="speak-btn" onclick="speakSentence(0)">🔊 Listen to your sentence</button>
+        </div>
+        <div class="celebration" id="celebration0">🎉 Great job! You made a sentence! 🎉</div>
+    </div>
+    
+    <!-- Slide 3: Adding Location -->
+    <div class="slide">
+        <h1>Where Did the Cat Sit? 🪑</h1>
+        <div class="princess-scene">
+            <div class="princess">👸</div>
+            <div style="font-size: 2em; margin: 10px;">🐱 🪑</div>
+        </div>
+        <div class="instructions">
+            <strong>Let's add MORE to our story:</strong> Where did the cat sit? Click to build a longer sentence!
+        </div>
+        <div class="word-bank">
+            <button class="word" onclick="addWord('The', 1)">The</button>
+            <button class="word" onclick="addWord('cat', 1)">cat</button>
+            <button class="word" onclick="addWord('sat', 1)">sat</button>
+            <button class="word" onclick="addWord('on', 1)">on</button>
+            <button class="word" onclick="addWord('it', 1)">it</button>
+        </div>
+        <div class="sentence-builder" id="sentence1">
+            <span style="color: #999;">Click words to build your sentence...</span>
+        </div>
+        <div style="text-align: center;">
+            <button class="clear-btn" id="clearBtn1" onclick="clearSentence(1)">🗑️ Clear & Start Again</button>
+        </div>
+        <div class="read-aloud" id="readAloud1" style="display: none;">
+            <strong>Read your whole sentence out loud! 📖</strong>
+            <br>
+            <button class="speak-btn" onclick="speakSentence(1)">🔊 Listen to your sentence</button>
+        </div>
+        <div class="celebration" id="celebration1">🎉 Amazing! You're telling a story! 🎉</div>
+    </div>
+    
+    <!-- Slide 4: New Character -->
+    <div class="slide">
+        <h1>The Princess and the Rat 🐭</h1>
+        <div class="princess-scene">
+            <div class="princess">👸</div>
+            <div style="font-size: 2.5em; margin: 10px;">🐭</div>
+        </div>
+        <div class="instructions">
+            <strong>New story time:</strong> What is the rat doing? Build a sentence about the rat!
+        </div>
+        <div class="word-bank">
+            <button class="word" onclick="addWord('The', 2)">The</button>
+            <button class="word" onclick="addWord('rat', 2)">rat</button>
+            <button class="word" onclick="addWord('is', 2)">is</button>
+            <button class="word" onclick="addWord('up', 2)">up</button>
+        </div>
+        <div class="sentence-builder" id="sentence2">
+            <span style="color: #999;">Click words to build your sentence...</span>
+        </div>
+        <div style="text-align: center;">
+            <button class="clear-btn" id="clearBtn2" onclick="clearSentence(2)">🗑️ Clear & Start Again</button>
+        </div>
+        <div class="read-aloud" id="readAloud2" style="display: none;">
+            <strong>Read your sentence and imagine the story! 📖</strong>
+            <br>
+            <button class="speak-btn" onclick="speakSentence(2)">🔊 Listen to your sentence</button>
+        </div>
+        <div class="celebration" id="celebration2">🎉 You're becoming a great story builder! 🎉</div>
+    </div>
+    
+    <!-- Slide 5: The Dad -->
+    <div class="slide">
+        <h1>The Princess Meets Dad 👨</h1>
+        <div class="princess-scene">
+            <div class="princess">👸</div>
+            <div style="font-size: 2.5em; margin: 10px;">👨</div>
+        </div>
+        <div class="instructions">
+            <strong>Story time:</strong> What is dad doing? You choose the words to tell the story!
+        </div>
+        <div class="word-bank">
+            <button class="word" onclick="addWord('Dad', 3)">Dad</button>
+            <button class="word" onclick="addWord('is', 3)">is</button>
+            <button class="word" onclick="addWord('up', 3)">up</button>
+            <button class="word" onclick="addWord('The', 3)">The</button>
+            <button class="word" onclick="addWord('man', 3)">man</button>
+            <button class="word" onclick="addWord('go', 3)">go</button>
+        </div>
+        <div class="sentence-builder" id="sentence3">
+            <span style="color: #999;">Click words to build your sentence...</span>
+        </div>
+        <div style="text-align: center;">
+            <button class="clear-btn" id="clearBtn3" onclick="clearSentence(3)">🗑️ Clear & Start Again</button>
+        </div>
+        <div class="read-aloud" id="readAloud3" style="display: none;">
+            <strong>Read your sentence - you're the storyteller! 📖</strong>
+            <br>
+            <button class="speak-btn" onclick="speakSentence(3)">🔊 Listen to your sentence</button>
+        </div>
+        <div class="celebration" id="celebration3">🎉 You're amazing at making stories! 🎉</div>
+    </div>
+    
+    <!-- Slide 6: Free Build -->
+    <div class="slide">
+        <h1>Your Own Princess Story! ✨</h1>
+        <div class="princess-scene">
+            <div class="princess">👸</div>
+            <div style="font-size: 2em;">✨🏰✨</div>
+        </div>
+        <div class="instructions">
+            <strong>You're the storyteller now!</strong> Use ANY words to build your own sentence. What story will you tell?
+        </div>
+        <div class="word-bank">
+            <button class="word" onclick="addWord('The', 4)">The</button>
+            <button class="word" onclick="addWord('cat', 4)">cat</button>
+            <button class="word" onclick="addWord('rat', 4)">rat</button>
+            <button class="word" onclick="addWord('dad', 4)">dad</button>
+            <button class="word" onclick="addWord('boy', 4)">boy</button>
+            <button class="word" onclick="addWord('man', 4)">man</button>
+            <button class="word" onclick="addWord('is', 4)">is</button>
+            <button class="word" onclick="addWord('sat', 4)">sat</button>
+            <button class="word" onclick="addWord('go', 4)">go</button>
+            <button class="word" onclick="addWord('up', 4)">up</button>
+            <button class="word" onclick="addWord('on', 4)">on</button>
+            <button class="word" onclick="addWord('in', 4)">in</button>
+            <button class="word" onclick="addWord('to', 4)">to</button>
+            <button class="word" onclick="addWord('it', 4)">it</button>
+            <button class="word" onclick="addWord('be', 4)">be</button>
+            <button class="word" onclick="addWord('if', 4)">if</button>
+            <button class="word" onclick="addWord('no', 4)">no</button>
+        </div>
+        <div class="sentence-builder" id="sentence4">
+            <span style="color: #999;">Click words to build your sentence...</span>
+        </div>
+        <div style="text-align: center;">
+            <button class="clear-btn" id="clearBtn4" onclick="clearSentence(4)">🗑️ Clear & Start Again</button>
+        </div>
+        <div class="read-aloud" id="readAloud4" style="display: none;">
+            <strong>Read your amazing story sentence! 📖</strong>
+            <br>
+            <button class="speak-btn" onclick="speakSentence(4)">🔊 Listen to your sentence</button>
+        </div>
+        <div class="celebration" id="celebration4">🎉 You're a fantastic storyteller! 🎉</div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="navigation">
+        <button class="nav-btn" onclick="previousSlide()">← Previous</button>
+        <button class="nav-btn" onclick="nextSlide()">Next →</button>
+    </div>
+    
+    <script>
+        let currentSlide = 0;
+        const totalSlides = 6;
+        const sentences = ['', '', '', '', ''];
+        
+        function updateProgress() {
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+        
+        function showSlide(index) {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[index].classList.add('active');
+            updateProgress();
+        }
+        
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+        
+        function previousSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+        
+        function addWord(word, slideIndex) {
+            const sentenceBuilder = document.getElementById('sentence' + slideIndex);
+            const readAloud = document.getElementById('readAloud' + slideIndex);
+            const celebration = document.getElementById('celebration' + slideIndex);
+            const clearBtn = document.getElementById('clearBtn' + slideIndex);
+            
+            // Add word to sentence
+            if (sentences[slideIndex] === '') {
+                sentences[slideIndex] = word;
+                sentenceBuilder.innerHTML = '<span class="sentence-word" onclick="removeWord(' + slideIndex + ', 0)">' + word + '</span>';
+            } else {
+                sentences[slideIndex] += ' ' + word;
+                const words = sentences[slideIndex].split(' ');
+                let html = '';
+                words.forEach((w, i) => {
+                    html += '<span class="sentence-word" onclick="removeWord(' + slideIndex + ', ' + i + ')">' + w + '</span>';
+                });
+                sentenceBuilder.innerHTML = html;
+            }
+            
+            // Show clear button, read aloud prompt
+            clearBtn.classList.add('show');
+            readAloud.style.display = 'block';
+            
+            // Show celebration for complete sentences
+            if (sentences[slideIndex].split(' ').length >= 3) {
+                celebration.classList.add('show');
+                setTimeout(() => {
+                    celebration.classList.remove('show');
+                }, 2000);
+            }
+            
+            // Mark word as used in some exercises
+            if (slideIndex < 4) {
+                const wordButtons = document.querySelectorAll('.slide:nth-child(' + (slideIndex + 2) + ') .word');
+                wordButtons.forEach(btn => {
+                    if (btn.textContent === word) {
+                        btn.classList.add('used');
+                        btn.disabled = true;
+                    }
+                });
+            }
+        }
+        
+        function removeWord(slideIndex, wordIndex) {
+            const words = sentences[slideIndex].split(' ');
+            words.splice(wordIndex, 1);
+            sentences[slideIndex] = words.join(' ');
+            
+            const sentenceBuilder = document.getElementById('sentence' + slideIndex);
+            if (sentences[slideIndex] === '') {
+                sentenceBuilder.innerHTML = '<span style="color: #999;">Click words to build your sentence...</span>';
+                document.getElementById('readAloud' + slideIndex).style.display = 'none';
+            } else {
+                let html = '';
+                words.forEach((w, i) => {
+                    html += '<span class="sentence-word" onclick="removeWord(' + slideIndex + ', ' + i + ')">' + w + '</span>';
+                });
+                sentenceBuilder.innerHTML = html;
+            }
+            
+            // Re-enable word buttons
+            const wordButtons = document.querySelectorAll('.slide:nth-child(' + (slideIndex + 2) + ') .word');
+            wordButtons.forEach(btn => {
+                btn.classList.remove('used');
+                btn.disabled = false;
+            });
+        }
+        
+        function speakSentence(slideIndex) {
+            if (sentences[slideIndex] === '') return;
+            
+            // Find the speak button in the slide that contains the sentence builder for this slideIndex
+            const speakBtn = document.querySelector('#readAloud' + slideIndex + ' .speak-btn');
+            const words = sentences[slideIndex].split(' ');
+            const sentenceWords = document.querySelectorAll('#sentence' + slideIndex + ' .sentence-word');
+            
+            // Check if speak button exists (some slides might not have one)
+            if (!speakBtn) return;
+            
+            // Disable button during speech
+            speakBtn.disabled = true;
+            speakBtn.textContent = '🔊 Speaking...';
+            
+            // Stop any current speech
+            if (speechSynthesis) {
+                speechSynthesis.cancel();
+            }
+            
+            let currentWordIndex = 0;
+            
+            function speakNextWord() {
+                if (currentWordIndex >= words.length) {
+                    // Speech finished
+                    if (speakBtn) {
+                        speakBtn.disabled = false;
+                        speakBtn.textContent = '🔊 Listen to your sentence';
+                    }
+                    // Remove all highlights
+                    sentenceWords.forEach(wordEl => wordEl.classList.remove('word-highlight'));
+                    return;
+                }
+                
+                // Highlight current word
+                sentenceWords.forEach(wordEl => wordEl.classList.remove('word-highlight'));
+                if (sentenceWords[currentWordIndex]) {
+                    sentenceWords[currentWordIndex].classList.add('word-highlight');
+                }
+                
+                // Create speech for current word
+                const utterance = new SpeechSynthesisUtterance(words[currentWordIndex]);
+                utterance.rate = 0.8; // Slightly slower for learning
+                utterance.volume = 0.9;
+                
+                utterance.onend = function() {
+                    currentWordIndex++;
+                    setTimeout(speakNextWord, 200); // Small pause between words
+                };
+                
+                utterance.onerror = function() {
+                    if (speakBtn) {
+                        speakBtn.disabled = false;
+                        speakBtn.textContent = '🔊 Listen to your sentence';
+                    }
+                    sentenceWords.forEach(wordEl => wordEl.classList.remove('word-highlight'));
+                };
+                
+                speechSynthesis.speak(utterance);
+            }
+            
+            speakNextWord();
+        }
+        
+        function clearSentence(slideIndex) {
+            sentences[slideIndex] = '';
+            const sentenceBuilder = document.getElementById('sentence' + slideIndex);
+            const readAloud = document.getElementById('readAloud' + slideIndex);
+            const clearBtn = document.getElementById('clearBtn' + slideIndex);
+            
+            sentenceBuilder.innerHTML = '<span style="color: #999;">Click words to build your sentence...</span>';
+            readAloud.style.display = 'none';
+            clearBtn.classList.remove('show');
+            
+            // Re-enable all word buttons for this slide
+            const wordButtons = document.querySelectorAll('.slide:nth-child(' + (slideIndex + 2) + ') .word');
+            wordButtons.forEach(btn => {
+                btn.classList.remove('used');
+                btn.disabled = false;
+            });
+        }
+        
+        // Initialize
+        updateProgress();
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') previousSlide();
+        });
+    </script>
+</body>
+</html>
