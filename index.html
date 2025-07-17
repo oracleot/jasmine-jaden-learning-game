@@ -74,6 +74,16 @@
             gap: 10px;
             margin: 20px 0;
             justify-content: center;
+            min-height: 60px;
+            padding: 10px;
+            border: 2px dashed #ff69b4;
+            border-radius: 10px;
+            background: rgba(255, 105, 180, 0.1);
+        }
+        
+        .word-bank.drag-over {
+            background: rgba(255, 105, 180, 0.3);
+            border-color: #ff1493;
         }
         
         .word {
@@ -81,18 +91,27 @@
             color: white;
             padding: 10px 15px;
             border-radius: 25px;
-            cursor: pointer;
+            cursor: grab;
             font-size: 1.5em;
             font-weight: bold;
             border: none;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            user-select: none;
+            touch-action: none;
         }
         
         .word:hover {
             background: #ff1493;
             transform: translateY(-3px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        .word:active, .word.dragging {
+            cursor: grabbing;
+            transform: scale(1.1) rotate(5deg);
+            z-index: 1000;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
         }
         
         .word.used {
@@ -113,6 +132,13 @@
             justify-content: center;
             font-size: 1.8em;
             color: #333;
+            position: relative;
+        }
+        
+        .sentence-builder.drag-over {
+            background: #e6ffe6;
+            border-color: #32cd32;
+            transform: scale(1.02);
         }
         
         .sentence-word {
@@ -121,12 +147,20 @@
             margin: 0 5px;
             border-radius: 10px;
             display: inline-block;
-            cursor: pointer;
+            cursor: grab;
             transition: all 0.3s ease;
+            user-select: none;
+            touch-action: none;
         }
         
         .sentence-word:hover {
             background: #ff91a4;
+        }
+        
+        .sentence-word:active, .sentence-word.dragging {
+            cursor: grabbing;
+            transform: scale(1.1);
+            z-index: 1000;
         }
         
         .navigation {
@@ -279,7 +313,7 @@
             <p style="font-size: 1.3em; color: #666;">Today we're going to build sentences to tell princess stories!</p>
         </div>
         <div class="instructions">
-            <strong>Remember:</strong> Read each word OUT LOUD as you click it! This helps your brain understand the story you're building.
+            <strong>Remember:</strong> Drag words OUT LOUD as you move them! This helps your brain understand the story you're building.
         </div>
     </div>
     
@@ -291,15 +325,15 @@
             <div style="font-size: 3em; margin-left: 20px;">🐱</div>
         </div>
         <div class="instructions">
-            <strong>Your turn:</strong> Click the words to build a sentence! Read each word as you click it.
+            <strong>Your turn:</strong> Drag the words to the sentence box below! Read each word as you drag it.
         </div>
-        <div class="word-bank">
-            <button class="word" onclick="addWord('The', 0)">The</button>
-            <button class="word" onclick="addWord('cat', 0)">cat</button>
-            <button class="word" onclick="addWord('sat', 0)">sat</button>
+        <div class="word-bank" ondrop="dropToTrash(event, 0)" ondragover="allowDrop(event)">
+            <span class="word" draggable="true" data-word="The">The</span>
+            <span class="word" draggable="true" data-word="cat">cat</span>
+            <span class="word" draggable="true" data-word="sat">sat</span>
         </div>
-        <div class="sentence-builder" id="sentence0">
-            <span style="color: #999;">Click words to build your sentence...</span>
+        <div class="sentence-builder" id="sentence0" ondrop="drop(event, 0)" ondragover="allowDrop(event)">
+            <span style="color: #999;">Drag words here to build your sentence...</span>
         </div>
         <div style="text-align: center;">
             <button class="clear-btn" id="clearBtn0" onclick="clearSentence(0)">🗑️ Clear & Start Again</button>
@@ -320,17 +354,17 @@
             <div style="font-size: 2em; margin: 10px;">🐱 🪑</div>
         </div>
         <div class="instructions">
-            <strong>Let's add MORE to our story:</strong> Where did the cat sit? Click to build a longer sentence!
+            <strong>Let's add MORE to our story:</strong> Where did the cat sit? Drag words to build a longer sentence!
         </div>
-        <div class="word-bank">
-            <button class="word" onclick="addWord('The', 1)">The</button>
-            <button class="word" onclick="addWord('cat', 1)">cat</button>
-            <button class="word" onclick="addWord('sat', 1)">sat</button>
-            <button class="word" onclick="addWord('on', 1)">on</button>
-            <button class="word" onclick="addWord('it', 1)">it</button>
+        <div class="word-bank" ondrop="dropToTrash(event, 1)" ondragover="allowDrop(event)">
+            <span class="word" draggable="true" data-word="The">The</span>
+            <span class="word" draggable="true" data-word="cat">cat</span>
+            <span class="word" draggable="true" data-word="sat">sat</span>
+            <span class="word" draggable="true" data-word="on">on</span>
+            <span class="word" draggable="true" data-word="it">it</span>
         </div>
-        <div class="sentence-builder" id="sentence1">
-            <span style="color: #999;">Click words to build your sentence...</span>
+        <div class="sentence-builder" id="sentence1" ondrop="drop(event, 1)" ondragover="allowDrop(event)">
+            <span style="color: #999;">Drag words here to build your sentence...</span>
         </div>
         <div style="text-align: center;">
             <button class="clear-btn" id="clearBtn1" onclick="clearSentence(1)">🗑️ Clear & Start Again</button>
@@ -351,16 +385,16 @@
             <div style="font-size: 2.5em; margin: 10px;">🐭</div>
         </div>
         <div class="instructions">
-            <strong>New story time:</strong> What is the rat doing? Build a sentence about the rat!
+            <strong>New story time:</strong> What is the rat doing? Drag words to build a sentence about the rat!
         </div>
-        <div class="word-bank">
-            <button class="word" onclick="addWord('The', 2)">The</button>
-            <button class="word" onclick="addWord('rat', 2)">rat</button>
-            <button class="word" onclick="addWord('is', 2)">is</button>
-            <button class="word" onclick="addWord('up', 2)">up</button>
+        <div class="word-bank" ondrop="dropToTrash(event, 2)" ondragover="allowDrop(event)">
+            <span class="word" draggable="true" data-word="The">The</span>
+            <span class="word" draggable="true" data-word="rat">rat</span>
+            <span class="word" draggable="true" data-word="is">is</span>
+            <span class="word" draggable="true" data-word="up">up</span>
         </div>
-        <div class="sentence-builder" id="sentence2">
-            <span style="color: #999;">Click words to build your sentence...</span>
+        <div class="sentence-builder" id="sentence2" ondrop="drop(event, 2)" ondragover="allowDrop(event)">
+            <span style="color: #999;">Drag words here to build your sentence...</span>
         </div>
         <div style="text-align: center;">
             <button class="clear-btn" id="clearBtn2" onclick="clearSentence(2)">🗑️ Clear & Start Again</button>
@@ -381,18 +415,18 @@
             <div style="font-size: 2.5em; margin: 10px;">👨</div>
         </div>
         <div class="instructions">
-            <strong>Story time:</strong> What is dad doing? You choose the words to tell the story!
+            <strong>Story time:</strong> What is dad doing? Drag words to tell the story!
         </div>
-        <div class="word-bank">
-            <button class="word" onclick="addWord('Dad', 3)">Dad</button>
-            <button class="word" onclick="addWord('is', 3)">is</button>
-            <button class="word" onclick="addWord('up', 3)">up</button>
-            <button class="word" onclick="addWord('The', 3)">The</button>
-            <button class="word" onclick="addWord('man', 3)">man</button>
-            <button class="word" onclick="addWord('go', 3)">go</button>
+        <div class="word-bank" ondrop="dropToTrash(event, 3)" ondragover="allowDrop(event)">
+            <span class="word" draggable="true" data-word="Dad">Dad</span>
+            <span class="word" draggable="true" data-word="is">is</span>
+            <span class="word" draggable="true" data-word="up">up</span>
+            <span class="word" draggable="true" data-word="The">The</span>
+            <span class="word" draggable="true" data-word="man">man</span>
+            <span class="word" draggable="true" data-word="go">go</span>
         </div>
-        <div class="sentence-builder" id="sentence3">
-            <span style="color: #999;">Click words to build your sentence...</span>
+        <div class="sentence-builder" id="sentence3" ondrop="drop(event, 3)" ondragover="allowDrop(event)">
+            <span style="color: #999;">Drag words here to build your sentence...</span>
         </div>
         <div style="text-align: center;">
             <button class="clear-btn" id="clearBtn3" onclick="clearSentence(3)">🗑️ Clear & Start Again</button>
@@ -413,29 +447,29 @@
             <div style="font-size: 2em;">✨🏰✨</div>
         </div>
         <div class="instructions">
-            <strong>You're the storyteller now!</strong> Use ANY words to build your own sentence. What story will you tell?
+            <strong>You're the storyteller now!</strong> Drag ANY words to build your own sentence. What story will you tell?
         </div>
-        <div class="word-bank">
-            <button class="word" onclick="addWord('The', 4)">The</button>
-            <button class="word" onclick="addWord('cat', 4)">cat</button>
-            <button class="word" onclick="addWord('rat', 4)">rat</button>
-            <button class="word" onclick="addWord('dad', 4)">dad</button>
-            <button class="word" onclick="addWord('boy', 4)">boy</button>
-            <button class="word" onclick="addWord('man', 4)">man</button>
-            <button class="word" onclick="addWord('is', 4)">is</button>
-            <button class="word" onclick="addWord('sat', 4)">sat</button>
-            <button class="word" onclick="addWord('go', 4)">go</button>
-            <button class="word" onclick="addWord('up', 4)">up</button>
-            <button class="word" onclick="addWord('on', 4)">on</button>
-            <button class="word" onclick="addWord('in', 4)">in</button>
-            <button class="word" onclick="addWord('to', 4)">to</button>
-            <button class="word" onclick="addWord('it', 4)">it</button>
-            <button class="word" onclick="addWord('be', 4)">be</button>
-            <button class="word" onclick="addWord('if', 4)">if</button>
-            <button class="word" onclick="addWord('no', 4)">no</button>
+        <div class="word-bank" ondrop="dropToTrash(event, 4)" ondragover="allowDrop(event)">
+            <span class="word" draggable="true" data-word="The">The</span>
+            <span class="word" draggable="true" data-word="cat">cat</span>
+            <span class="word" draggable="true" data-word="rat">rat</span>
+            <span class="word" draggable="true" data-word="dad">dad</span>
+            <span class="word" draggable="true" data-word="boy">boy</span>
+            <span class="word" draggable="true" data-word="man">man</span>
+            <span class="word" draggable="true" data-word="is">is</span>
+            <span class="word" draggable="true" data-word="sat">sat</span>
+            <span class="word" draggable="true" data-word="go">go</span>
+            <span class="word" draggable="true" data-word="up">up</span>
+            <span class="word" draggable="true" data-word="on">on</span>
+            <span class="word" draggable="true" data-word="in">in</span>
+            <span class="word" draggable="true" data-word="to">to</span>
+            <span class="word" draggable="true" data-word="it">it</span>
+            <span class="word" draggable="true" data-word="be">be</span>
+            <span class="word" draggable="true" data-word="if">if</span>
+            <span class="word" draggable="true" data-word="no">no</span>
         </div>
-        <div class="sentence-builder" id="sentence4">
-            <span style="color: #999;">Click words to build your sentence...</span>
+        <div class="sentence-builder" id="sentence4" ondrop="drop(event, 4)" ondragover="allowDrop(event)">
+            <span style="color: #999;">Drag words here to build your sentence...</span>
         </div>
         <div style="text-align: center;">
             <button class="clear-btn" id="clearBtn4" onclick="clearSentence(4)">🗑️ Clear & Start Again</button>
@@ -456,6 +490,9 @@
     
     <script>
         let currentSlide = 0;
+        let draggedElement = null;
+        let draggedFromSentence = false;
+        let draggedWordIndex = -1;
         const totalSlides = 6;
         const sentences = ['', '', '', '', ''];
         
@@ -469,6 +506,34 @@
             slides.forEach(slide => slide.classList.remove('active'));
             slides[index].classList.add('active');
             updateProgress();
+            
+            // Reset word visibility for the new slide
+            if (index > 0) { // Skip intro slide
+                const slideIndex = index - 1;
+                resetWordVisibility(slideIndex);
+            }
+        }
+        
+        function resetWordVisibility(slideIndex) {
+            const currentSlideElement = document.querySelector('.slide.active');
+            if (currentSlideElement) {
+                // First show all words
+                const wordElements = currentSlideElement.querySelectorAll('.word[draggable="true"]');
+                wordElements.forEach(wordEl => {
+                    wordEl.style.display = 'inline-block';
+                });
+                
+                // Then hide words that are in the sentence
+                if (sentences[slideIndex] && sentences[slideIndex].trim() !== '') {
+                    const wordsInSentence = sentences[slideIndex].split(' ');
+                    wordsInSentence.forEach(word => {
+                        const wordInBank = currentSlideElement.querySelector('.word[data-word="' + word + '"]');
+                        if (wordInBank) {
+                            wordInBank.style.display = 'none';
+                        }
+                    });
+                }
+            }
         }
         
         function nextSlide() {
@@ -485,7 +550,63 @@
             }
         }
         
-        function addWord(word, slideIndex) {
+        // Drag and Drop Functions
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+        
+        function drop(ev, slideIndex) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            
+            if (!draggedElement) return;
+            
+            const word = draggedElement.dataset.word || draggedElement.textContent;
+            const currentSlideIndex = getCurrentSlideIndex();
+            
+            if (draggedFromSentence) {
+                if (currentSlideIndex === slideIndex) {
+                    // Dragging within the same sentence - just rearrange, don't duplicate
+                    // The word is already in the sentence, so we don't need to add it again
+                    // Just update the display to reflect any position changes
+                    resetDragState();
+                    return;
+                } else {
+                    // Moving word from one sentence to another
+                    removeWordFromSentence(currentSlideIndex, draggedWordIndex);
+                    addWordToSentence(word, slideIndex);
+                }
+            } else {
+                // Adding new word from word bank - hide the word in word bank
+                draggedElement.style.display = 'none';
+                addWordToSentence(word, slideIndex);
+            }
+            
+            resetDragState();
+        }
+        
+        function dropToTrash(ev, slideIndex) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            
+            if (!draggedElement || !draggedFromSentence) {
+                resetDragState();
+                return;
+            }
+            
+            const word = draggedElement.dataset.word || draggedElement.textContent;
+            
+            // Remove word from sentence
+            removeWordFromSentence(getCurrentSlideIndex(), draggedWordIndex);
+            
+            // Show the word back in the word bank
+            showWordInBank(word, slideIndex);
+            
+            resetDragState();
+        }
+        
+        function addWordToSentence(word, slideIndex) {
             const sentenceBuilder = document.getElementById('sentence' + slideIndex);
             const readAloud = document.getElementById('readAloud' + slideIndex);
             const celebration = document.getElementById('celebration' + slideIndex);
@@ -494,16 +615,12 @@
             // Add word to sentence
             if (sentences[slideIndex] === '') {
                 sentences[slideIndex] = word;
-                sentenceBuilder.innerHTML = '<span class="sentence-word" onclick="removeWord(' + slideIndex + ', 0)">' + word + '</span>';
             } else {
                 sentences[slideIndex] += ' ' + word;
-                const words = sentences[slideIndex].split(' ');
-                let html = '';
-                words.forEach((w, i) => {
-                    html += '<span class="sentence-word" onclick="removeWord(' + slideIndex + ', ' + i + ')">' + w + '</span>';
-                });
-                sentenceBuilder.innerHTML = html;
             }
+            
+            // Update display
+            updateSentenceDisplay(slideIndex);
             
             // Show clear button, read aloud prompt
             clearBtn.classList.add('show');
@@ -516,155 +633,249 @@
                     celebration.classList.remove('show');
                 }, 2000);
             }
+        }
+        
+        function updateSentenceDisplay(slideIndex) {
+            const sentenceBuilder = document.getElementById('sentence' + slideIndex);
             
-            // Mark word as used in some exercises
-            if (slideIndex < 4) {
-                const wordButtons = document.querySelectorAll('.slide:nth-child(' + (slideIndex + 2) + ') .word');
-                wordButtons.forEach(btn => {
-                    if (btn.textContent === word) {
-                        btn.classList.add('used');
-                        btn.disabled = true;
-                    }
+            if (sentences[slideIndex] === '') {
+                sentenceBuilder.innerHTML = '<span style="color: #999;">Drag words here to build your sentence...</span>';
+                return;
+            }
+            
+            const words = sentences[slideIndex].split(' ');
+            let html = '';
+            words.forEach((w, i) => {
+                html += '<span class="sentence-word" draggable="true" data-word="' + w + '" data-index="' + i + '">' + w + '</span>';
+            });
+            sentenceBuilder.innerHTML = html;
+            
+            // Add drag events to sentence words
+            const sentenceWords = sentenceBuilder.querySelectorAll('.sentence-word');
+            sentenceWords.forEach(wordEl => {
+                wordEl.addEventListener('dragstart', function(e) {
+                    startDragFromSentence(e, slideIndex);
+                });
+                wordEl.addEventListener('dragend', function(e) {
+                    endDrag(e);
+                });
+            });
+        }
+        
+        function removeWordFromSentence(slideIndex, wordIndex) {
+            const words = sentences[slideIndex].split(' ');
+            if (wordIndex >= 0 && wordIndex < words.length) {
+                const removedWord = words[wordIndex];
+                words.splice(wordIndex, 1);
+                sentences[slideIndex] = words.join(' ');
+                updateSentenceDisplay(slideIndex);
+                
+                if (sentences[slideIndex] === '') {
+                    document.getElementById('readAloud' + slideIndex).style.display = 'none';
+                    document.getElementById('clearBtn' + slideIndex).classList.remove('show');
+                }
+                
+                // Show the removed word back in the word bank
+                showWordInBank(removedWord, slideIndex);
+            }
+        }
+        
+        function startDragFromSentence(e, slideIndex) {
+            draggedElement = e.target;
+            draggedFromSentence = true;
+            draggedWordIndex = parseInt(e.target.dataset.index);
+            e.target.classList.add('dragging');
+        }
+        
+        function getCurrentSlideIndex() {
+            // Find which slide is currently active
+            const slides = document.querySelectorAll('.slide');
+            for (let i = 0; i < slides.length; i++) {
+                if (slides[i].classList.contains('active')) {
+                    return Math.max(0, i - 1); // Subtract 1 because first slide is intro
+                }
+            }
+            return currentSlide - 1; // Fallback
+        }
+        
+        function showWordInBank(word, slideIndex) {
+            // Find the word in the current slide's word bank and show it
+            const currentSlideElement = document.querySelector('.slide.active');
+            if (currentSlideElement) {
+                const wordElements = currentSlideElement.querySelectorAll('.word[data-word="' + word + '"]');
+                wordElements.forEach(wordEl => {
+                    wordEl.style.display = 'inline-block';
                 });
             }
         }
         
-        function removeWord(slideIndex, wordIndex) {
-            const words = sentences[slideIndex].split(' ');
-            words.splice(wordIndex, 1);
-            sentences[slideIndex] = words.join(' ');
-            
-            const sentenceBuilder = document.getElementById('sentence' + slideIndex);
-            if (sentences[slideIndex] === '') {
-                sentenceBuilder.innerHTML = '<span style="color: #999;">Click words to build your sentence...</span>';
-                document.getElementById('readAloud' + slideIndex).style.display = 'none';
-            } else {
-                let html = '';
-                words.forEach((w, i) => {
-                    html += '<span class="sentence-word" onclick="removeWord(' + slideIndex + ', ' + i + ')">' + w + '</span>';
-                });
-                sentenceBuilder.innerHTML = html;
+        function startDrag(e) {
+            draggedElement = e.target;
+            draggedFromSentence = false;
+            draggedWordIndex = -1;
+            e.target.classList.add('dragging');
+        }
+        
+        function endDrag(e) {
+            e.target.classList.remove('dragging');
+        }
+        
+        function resetDragState() {
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging');
             }
+            draggedElement = null;
+            draggedFromSentence = false;
+            draggedWordIndex = -1;
             
-            // Re-enable word buttons
-            const wordButtons = document.querySelectorAll('.slide:nth-child(' + (slideIndex + 2) + ') .word');
-            wordButtons.forEach(btn => {
-                btn.classList.remove('used');
-                btn.disabled = false;
+            // Remove drag-over class from all sentence builders and word banks
+            document.querySelectorAll('.sentence-builder, .word-bank').forEach(element => {
+                element.classList.remove('drag-over');
+            });
+        }
+        
+        // Add drag event listeners to word bank items
+        function initializeDragEvents() {
+            const wordElements = document.querySelectorAll('.word[draggable="true"]');
+            wordElements.forEach(wordEl => {
+                wordEl.addEventListener('dragstart', startDrag);
+                wordEl.addEventListener('dragend', endDrag);
+            });
+            
+            // Add dragenter and dragleave events for visual feedback
+            const sentenceBuilders = document.querySelectorAll('.sentence-builder');
+            sentenceBuilders.forEach(sb => {
+                sb.addEventListener('dragenter', function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                });
+                
+                sb.addEventListener('dragleave', function(e) {
+                    // Only remove if we're actually leaving the drop zone
+                    if (!this.contains(e.relatedTarget)) {
+                        this.classList.remove('drag-over');
+                    }
+                });
+            });
+            
+            // Add dragenter and dragleave events for word banks (trash areas)
+            const wordBanks = document.querySelectorAll('.word-bank');
+            wordBanks.forEach(wb => {
+                wb.addEventListener('dragenter', function(e) {
+                    e.preventDefault();
+                    if (draggedFromSentence) {
+                        this.classList.add('drag-over');
+                    }
+                });
+                
+                wb.addEventListener('dragleave', function(e) {
+                    // Only remove if we're actually leaving the drop zone
+                    if (!this.contains(e.relatedTarget)) {
+                        this.classList.remove('drag-over');
+                    }
+                });
             });
         }
         
         function speakSentence(slideIndex) {
             if (sentences[slideIndex] === '') return;
             
-            // Find the speak button in the slide that contains the sentence builder for this slideIndex
             const speakBtn = document.querySelector('#readAloud' + slideIndex + ' .speak-btn');
             const words = sentences[slideIndex].split(' ');
             const sentenceWords = document.querySelectorAll('#sentence' + slideIndex + ' .sentence-word');
             
-            // Check if speak button exists (some slides might not have one)
             if (!speakBtn) return;
             
-            // Check if speech synthesis is supported
             if (!('speechSynthesis' in window)) {
                 alert('Speech is not supported on this device. Please read the sentence out loud: "' + sentences[slideIndex] + '"');
                 return;
             }
             
-            // Disable button during speech
             speakBtn.disabled = true;
             speakBtn.textContent = '🔊 Speaking...';
             
-            // Stop any current speech
             speechSynthesis.cancel();
             
-            // Wait a moment for cancel to complete, then start new speech
             setTimeout(() => {
-                // Try simple approach first - speak the whole sentence
                 const utterance = new SpeechSynthesisUtterance(sentences[slideIndex]);
-                utterance.rate = 0.7; // Slower for learning
+                utterance.rate = 0.7;
                 utterance.volume = 1.0;
                 utterance.pitch = 1.0;
                 
-                // Set a voice if available (helps with compatibility)
                 const voices = speechSynthesis.getVoices();
                 if (voices.length > 0) {
-                    // Try to find an English voice
                     const englishVoice = voices.find(voice => voice.lang.startsWith('en'));
                     if (englishVoice) {
                         utterance.voice = englishVoice;
                     } else {
-                        utterance.voice = voices[0]; // Use first available voice
+                        utterance.voice = voices[0];
                     }
                 }
                 
                 utterance.onstart = function() {
-                    console.log('Speech started');
-                    // Highlight all words at once for tablet compatibility
                     sentenceWords.forEach(wordEl => wordEl.classList.add('word-highlight'));
                 };
                 
                 utterance.onend = function() {
-                    console.log('Speech ended');
-                    // Speech finished
                     if (speakBtn) {
                         speakBtn.disabled = false;
                         speakBtn.textContent = '🔊 Listen to your sentence';
                     }
-                    // Remove all highlights
                     sentenceWords.forEach(wordEl => wordEl.classList.remove('word-highlight'));
                 };
                 
                 utterance.onerror = function(event) {
-                    console.log('Speech error:', event.error);
                     if (speakBtn) {
                         speakBtn.disabled = false;
                         speakBtn.textContent = '🔊 Listen to your sentence';
                     }
                     sentenceWords.forEach(wordEl => wordEl.classList.remove('word-highlight'));
-                    
-                    // Show user-friendly error message
                     alert('Speech may not work on this device. Please read out loud: "' + sentences[slideIndex] + '"');
                 };
                 
-                // Speak the sentence
                 speechSynthesis.speak(utterance);
-                
-            }, 100); // Small delay to ensure previous speech is cancelled
+            }, 100);
         }
         
         function clearSentence(slideIndex) {
+            // Get words from sentence before clearing
+            const wordsToRestore = sentences[slideIndex].split(' ').filter(word => word.trim() !== '');
+            
             sentences[slideIndex] = '';
             const sentenceBuilder = document.getElementById('sentence' + slideIndex);
             const readAloud = document.getElementById('readAloud' + slideIndex);
             const clearBtn = document.getElementById('clearBtn' + slideIndex);
             
-            sentenceBuilder.innerHTML = '<span style="color: #999;">Click words to build your sentence...</span>';
+            sentenceBuilder.innerHTML = '<span style="color: #999;">Drag words here to build your sentence...</span>';
             readAloud.style.display = 'none';
             clearBtn.classList.remove('show');
             
-            // Re-enable all word buttons for this slide
-            const wordButtons = document.querySelectorAll('.slide:nth-child(' + (slideIndex + 2) + ') .word');
-            wordButtons.forEach(btn => {
-                btn.classList.remove('used');
-                btn.disabled = false;
+            // Restore all words to the word bank
+            wordsToRestore.forEach(word => {
+                showWordInBank(word, slideIndex);
             });
         }
         
         // Initialize
         updateProgress();
+        initializeDragEvents();
         
-        // Initialize speech synthesis voices (helps with tablet compatibility)
+        // Initialize word visibility for the first content slide
+        setTimeout(() => {
+            if (currentSlide === 0) {
+                resetWordVisibility(0);
+            }
+        }, 100);
+        
+        // Initialize speech synthesis voices
         if ('speechSynthesis' in window) {
-            // Load voices
             function loadVoices() {
                 const voices = speechSynthesis.getVoices();
                 console.log('Available voices:', voices.length);
             }
             
-            // Some browsers load voices asynchronously
             speechSynthesis.onvoiceschanged = loadVoices;
-            loadVoices(); // Try loading immediately too
+            loadVoices();
         }
         
         // Keyboard navigation
@@ -672,6 +883,10 @@
             if (e.key === 'ArrowRight') nextSlide();
             if (e.key === 'ArrowLeft') previousSlide();
         });
+        
+        // Cleanup drag state on mouse up anywhere
+        document.addEventListener('mouseup', resetDragState);
+        document.addEventListener('touchend', resetDragState);
     </script>
 </body>
 </html>
